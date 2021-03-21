@@ -1,0 +1,27 @@
+trigger:
+  - none
+
+pool:
+  vmImage: 'ubuntu-20.04'
+
+jobs:
+  - job: Publish_Artifact
+    displayName: Publish Artifact
+    steps:
+      - task: CopyFiles@2
+        inputs:
+          sourceFolder: $(System.DefaultWorkingDirectory)
+          contents: Azure-KeyVault-References/**
+          targetFolder: $(Build.ArtifactStagingDirectory)/Azure-KeyVault-References
+
+      - publish: $(Build.ArtifactStagingDirectory)/Azure-KeyVault-References
+        artifact: Azure-KeyVault-References
+
+  # - job:
+  #   displayName: Deploy to Azure
+  #   dependsOn: Publish_Artifact
+  #   steps:
+  #     - task: AzureResourceGroupDeployment@2
+  #       displayName: Deploy Key Vault
+  #       inputs:
+
