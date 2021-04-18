@@ -4,24 +4,72 @@ trigger:
 pool:
   vmImage: 'ubuntu-20.04'
 
-jobs:
-  - job: Publish_Artifact
-    displayName: Publish Artifact
-    steps:
-      - task: CopyFiles@2
-        inputs:
-          sourceFolder: $(System.DefaultWorkingDirectory)
-          contents: Azure-KeyVault-References/**
-          targetFolder: $(Build.ArtifactStagingDirectory)/Azure-KeyVault-References
+stages:
+  - stage: Build
+    displayName: Build stage
 
-      - publish: $(Build.ArtifactStagingDirectory)/Azure-KeyVault-References
-        artifact: Azure-KeyVault-References
+    jobs:
+    - job: Build_Artifacts
+      displayName: Build Artifacts
+      steps:
+        - task: CopyFiles@2
+          inputs:
+            sourceFolder: $(System.DefaultWorkingDirectory)
+            contents: Azure-KeyVault-References/arm/**
+            targetFolder: $(Build.ArtifactStagingDirectory)/Azure-KeyVault-References
 
-  # - job:
-  #   displayName: Deploy to Azure
-  #   dependsOn: Publish_Artifact
-  #   steps:
-  #     - task: AzureResourceGroupDeployment@2
-  #       displayName: Deploy Key Vault
-  #       inputs:
+        - publish: $(Build.ArtifactStagingDirectory)/Azure-KeyVault-References
+          artifact: arm
 
+        - task: ArchiveFiles@2
+          inputs:
+            rootFolderOrFile: $(workingDirectory)/function
+            includeRootFolder: false
+            archiveType: zip
+            archiveFile: $(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip
+            replaceExistingArchive: true
+
+        - publish: $(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip
+          artifact: function
+
+
+  - stage: Deploy
+    displayName: Deploy stage
+    dependsOn: Build
+    condition: succeeded()
+
+    jobs:
+    - deployment: deploy
+      displayName: Deploy
+      environment: develop
+      strategy:
+        runOnce:
+          deploy:
+            steps:
+              - task: AzureResourceGroupDeployment@2
+                displayName: "Azure ARM Deployment: Key Vault"
+                inputs:
+                  azureSubscription: azure
+                  resourceGroupName: kvrefsdevelop
+                  location: 'UK South'
+                  csmFile: $(Pipeline.Workspace)/arm/templates/keyvault.json
+                  csmParametersFile: $(Pipeline.Workspace)/arm/templates/keyvault.parameters.json
+                  overrideParameters:
+
+              - task: AzureResourceGroupDeployment@2
+                displayName: "Azure ARM Deployment: Function"
+                inputs:
+                  azureSubscription: azure
+                  resourceGroupName: kvrefsdevelop
+                  location: 'UK South'
+                  csmFile: $(Pipeline.Workspace)/arm/templates/function.json
+                  csmParametersFile: $(Pipeline.Workspace)/arm/templates/function.parameters.json
+                  overrideParameters:
+
+              - task: AzureFunctionApp@1
+                displayName: 'Azure functions app deploy'
+                inputs:
+                  azureSubscription: azure
+                  appType: functionApp
+                  appName: robmarksdevelop
+                  package: '$(Pipeline.Workspace)/function/*.zip'
