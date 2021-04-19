@@ -2,7 +2,7 @@ trigger:
   - none
 
 pool:
-  vmImage: 'ubuntu-20.04'
+  vmImage: 'ubuntu-18.04'
 
 stages:
   - stage: Build
@@ -68,6 +68,7 @@ stages:
 
               - task: AzureFunctionApp@1
                 displayName: 'Azure functions app deploy'
+
                 inputs:
                   azureSubscription: azure
                   appType: functionApp
