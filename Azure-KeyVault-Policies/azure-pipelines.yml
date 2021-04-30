@@ -1,0 +1,27 @@
+pool:
+  vmImage: 'ubuntu-20.04'
+
+stages :
+  - stage: deploy_arm
+    jobs:
+      - job: deploy_arm
+        steps:
+          - checkout: self
+
+          - task: AzureCLI@2
+            displayName: 'Script: Get existing policies'
+            inputs:
+              azureSubscription: azure
+              scriptType: pscore
+              scriptPath: $(System.DefaultWorkingDirectory)/Azure-KeyVault-Policies/scripts/get-keyvault-policies.ps1
+              arguments: -keyVaultName 'robmarkscloudpolicykv' -outputName 'existingKvPolicies'
+
+          - task: AzureResourceGroupDeployment@2
+            displayName: "Azure ARM Deployment: Function"
+            inputs:
+              azureSubscription: azure
+              resourceGroupName: 'keyvault-policies'
+              location: 'UK South'
+              csmFile: '$(System.DefaultWorkingDirectory)/Azure-KeyVault-Policies/templates/keyvault.json'
+              csmParametersFile: '$(System.DefaultWorkingDirectory)/Azure-KeyVault-Policies/parameters/keyvault.parameters.json'
+              overrideParameters: -existingPolicies $(existingKvPolicies)

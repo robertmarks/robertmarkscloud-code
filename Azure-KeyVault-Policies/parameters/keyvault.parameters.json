@@ -1,0 +1,62 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "userAccessObjectId": {
+            "value": "4de97799-d8aa-4111-bf79-b4160f8c11da"
+        },
+        "userAccessKeysPermissions": {
+            "value": [
+                "Get",
+                "List",
+                "Update",
+                "Create",
+                "Import",
+                "Delete",
+                "Recover",
+                "Backup",
+                "Restore"
+            ]
+        },
+        "userAccessSecretsPermissions": {
+            "value": [
+                "Get",
+                "List",
+                "Set",
+                "Delete",
+                "Recover",
+                "Backup",
+                "Restore"
+            ]
+        },
+        "userAccessCertificatePermissions": {
+            "value": [
+                "Get",
+                "List",
+                "Update",
+                "Create",
+                "Import",
+                "Delete",
+                "Recover",
+                "Backup",
+                "Restore",
+                "ManageContacts",
+                "ManageIssuers",
+                "GetIssuers",
+                "ListIssuers",
+                "SetIssuers",
+                "DeleteIssuers"
+            ]
+        },
+        "spObjectId": {
+            "value": "27723e7c-de3f-4139-a2af-83067a96b989"
+        },
+        "spSecretsPermissions": {
+            "value": [
+                "Get",
+                "List",
+                "Set"
+            ]
+        }
+    }
+}
